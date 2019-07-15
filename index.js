@@ -1,2 +1,3 @@
-const Lang = require('./lib/lang');
-module.exports = Lang;
+const Module = require('./lib/module');
+const Utility = require('./lib/utility');
+module.exports = { Module, Utility };

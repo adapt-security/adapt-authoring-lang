@@ -1,10 +1,11 @@
 {
-  "name": "adapt-authoring-l10n",
+  "name": "adapt-authoring-lang",
   "version": "0.0.1",
   "description": "Localisation for the Adapt authoring tool",
   "homepage": "https://github.com/taylortom/adapt-authoring-l10n",
   "main": "index.js",
   "adapt_authoring": {
+    "module": true,
     "utility": true,
     "documentation": {
       "enable": true,

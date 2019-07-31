@@ -1,3 +1,4 @@
 {
-  "missingkey": "Missing translation for key '%{key}'"
+  "missingkey": "Missing translation for key '%{key}'",
+  "duplicatekey": "Duplicate translation for key '%{key}'"
 }

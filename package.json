@@ -7,6 +7,9 @@
   "adapt_authoring": {
     "module": true,
     "utility": "lang",
+    "moduleDependencies": {
+      "adapt-authoring-test": "*"
+    },
     "documentation": {
       "enable": true,
       "includes": {

@@ -4,17 +4,7 @@
   "description": "Localisation for the Adapt authoring tool",
   "homepage": "https://github.com/taylortom/adapt-authoring-l10n",
   "main": "index.js",
-  "adapt_authoring": {
-    "module": true,
-    "utility": "lang",
-    "documentation": {
-      "enable": true
-    }
-  },
   "dependencies": {
     "node-polyglot": "2.3.0"
-  },
-  "devDependencies": {
-    "i18n-extract": "0.6.6"
   }
 }

@@ -1,0 +1,6 @@
+{
+  "error.missingkey": "Failed to determine language of environment, using ",
+  "error.missingkey": "Missing translation for key '%{key}'",
+  "error.duplicatekey": "Duplicate translation for key '%{key}'",
+  "info.setlocale": "locale set to '%{locale}'"
+}

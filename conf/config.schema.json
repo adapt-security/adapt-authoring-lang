@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "locale": {
+      "type": "string",
+      "description": "The language to be used by the back-end server for log messages etc.",
+      "default": "en"
+    }
+  }
+}

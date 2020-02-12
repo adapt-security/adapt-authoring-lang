@@ -6,6 +6,11 @@
       "type": "string",
       "description": "The language to be used by the back-end server for log messages etc.",
       "default": "en"
+    },
+    "supportedLanguages": {
+      "type": "array",
+      "description": "The languages which are supported by the back-end server",
+      "default": ["en"]
     }
   }
 }

@@ -5,6 +5,8 @@
   "homepage": "https://github.com/taylortom/adapt-authoring-l10n",
   "main": "index.js",
   "dependencies": {
+    "fs-extra": "8.1.0",
+    "glob": "7.1.6",
     "node-polyglot": "2.3.0"
   }
 }

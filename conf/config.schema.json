@@ -10,6 +10,7 @@
     "supportedLanguages": {
       "type": "array",
       "description": "The languages which are supported by the back-end server",
+      "items": { "type": "string" },
       "default": ["en"]
     }
   }

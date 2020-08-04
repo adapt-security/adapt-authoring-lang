@@ -2,7 +2,9 @@
   "name": "adapt-authoring-lang",
   "version": "0.0.1",
   "description": "Localisation for the Adapt authoring tool",
-  "homepage": "https://github.com/taylortom/adapt-authoring-l10n",
+  "homepage": "https://github.com/taylortom/adapt-authoring-lang",
+  "license": "GPL-3.0",
+  "repository": "github:adaptlearning/adapt-authoring-lang",
   "main": "index.js",
   "dependencies": {
     "fs-extra": "8.1.0",

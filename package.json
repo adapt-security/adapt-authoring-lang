@@ -4,8 +4,8 @@
   "description": "Localisation for the Adapt authoring tool",
   "homepage": "https://github.com/taylortom/adapt-authoring-lang",
   "license": "GPL-3.0",
-  "repository": "adaptlearning/adapt-authoring-lang",
   "main": "index.js",
+  "repository": "adaptlearning/adapt-authoring-lang",
   "dependencies": {
     "fs-extra": "8.1.0",
     "glob": "7.1.6",

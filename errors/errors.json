@@ -1,0 +1,9 @@
+{
+  "UNKNOWN_LANG": {
+    "data": {
+      "lang": "language"
+    },
+    "description": "unknown language",
+    "statusCode": 400
+  }
+}

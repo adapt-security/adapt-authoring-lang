@@ -3,8 +3,8 @@
   "type": "object",
   "properties": {
     "defaultLang": {
-      "type": "string",
       "description": "The default language used by the server",
+      "type": "string",
       "default": "en"
     }
   }

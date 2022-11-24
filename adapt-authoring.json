@@ -1,5 +1,5 @@
 {
-  "isEssential": true,
+  "essentialType": "lang",
   "documentation": {
     "enable": true
   }

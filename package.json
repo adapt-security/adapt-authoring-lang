@@ -6,6 +6,9 @@
   "license": "GPL-3.0",
   "type": "module",
   "main": "index.js",
+  "bin": {
+    "at-langcheck": "./bin/check.js"
+  },
   "repository": "github:adapt-security/adapt-authoring-lang",
   "dependencies": {
     "glob": "7.1.6"

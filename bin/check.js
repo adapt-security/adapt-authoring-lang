@@ -61,6 +61,7 @@ function logUnusedStrings(data) {
   if(unusedKeys.length) {
     unusedKeys.forEach(k => console.log(`- ${k}`));
     console.log(`\n${unusedKeys.length} unused language strings found`);
+    process.exitCode = 1;
   } else {
     console.log('\nNo unused strings!');
   }
@@ -74,6 +75,7 @@ function logMissingStrings(translatedStrings, usedStrings) {
     const sep = '\n   => ';
     missingStrings.forEach(([key, files]) => console.log(`- ${key}${sep}${Array.from(files).join(sep)}`));
     console.log(`\n${missingStrings.length} missing language strings found`);
+    process.exitCode = 1;
   } else {
     console.log('\nNo missing strings!');
   }

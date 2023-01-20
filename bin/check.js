@@ -4,15 +4,25 @@
 */
 import fs from "fs/promises";
 import globCb from "glob";
-import { promisify } from "util";
+import path from "path";
+import { log, promisify } from "util";
 const glob = promisify(globCb);
+
+const root = `${process.cwd().replaceAll(path.sep, '/')}/node_modules`;
 
 async function check() {
   console.log('Checking for unused language strings');
-  const root = `${process.cwd()}/node_modules`;
-  const langPacks = await glob(`${root}/adapt-authoring-langpack-*/lang`);
-  const stringKeys = {};
 
+  const translatedStrings = await getTranslatedStrings();
+  const usedStrings = await getUsedStrings(translatedStrings);
+  
+  logUnusedStrings(translatedStrings);
+  logMissingStrings(translatedStrings, usedStrings);
+}
+
+async function getTranslatedStrings() {
+  const langPacks = await glob(`${root}/adapt-authoring-langpack-*/lang`);
+  const keyMap = {};
   await Promise.all((langPacks).map(async l => {
     await Promise.all((await fs.readdir(l)).map(async f => {
       const keys = JSON.parse(await fs.readFile(`${l}/${f}`));
@@ -20,23 +30,53 @@ async function check() {
       if(id === 'error') {
         return;
       }
-      Object.keys(keys)
-        .map(k => `${id}.${k}`)
-        .forEach(k => stringKeys[k] = false);
+      Object.keys(keys).map(k => `${id}.${k}`).forEach(k => keyMap[k] = false);
     }));
   }));
-  const keys = Object.keys(stringKeys);
-  const files = await glob(`${root}/adapt-authoring-ui/**/*.@(js|hbs)`, { absolute: true });
+  return keyMap;
+}
+
+async function getUsedStrings(translatedStrings) {
+  const uiRoot = `${root}/adapt-authoring-ui/app/`;
+  const files = await glob(`${uiRoot}**/*.@(js|hbs)`, { absolute: true });
+  const translatedKeys = Object.keys(translatedStrings);
+  const usedStrings = {};
   await Promise.all(files.map(async f => {
     const contents = (await fs.readFile(f)).toString();
-    keys.forEach(k => contents.includes(k) ? stringKeys[k] = true : null);
+    translatedKeys.forEach(k => contents.includes(k) ? translatedStrings[k] = true : undefined);
+    const match = contents.matchAll(/(app\.[\w|\.]+)\W/g);
+    if(match) {
+      for (const [s, key] of match) {
+        if(!usedStrings[key]) usedStrings[key] = new Set();
+        usedStrings[key].add(f.replace(uiRoot, ''));
+      }
+    }
   }));
-  const unusedKeys = Object.entries(stringKeys).filter(([k,v]) => !v).map(([k]) => k);
+  return usedStrings;
+}
+
+function logUnusedStrings(data) {
+  const unusedKeys = Object.entries(data).filter(([k,v]) => !v).map(([k]) => k);
+  console.log('');
   if(unusedKeys.length) {
     unusedKeys.forEach(k => console.log(`- ${k}`));
-    console.log(`${unusedKeys.length} unused language strings found`);
+    console.log(`\n${unusedKeys.length} unused language strings found`);
+  } else {
+    console.log('\nNo unused strings!');
   }
-  else console.log('No unused strings!');
+}
+
+function logMissingStrings(translatedStrings, usedStrings) {
+  console.log('');
+  const translatedKeys = Object.keys(translatedStrings);
+  const missingStrings = Object.entries(usedStrings).filter(([key]) => !translatedKeys.includes(key) && key !== 'app.js');
+  if(missingStrings.length) {
+    const sep = '\n   => ';
+    missingStrings.forEach(([key, files]) => console.log(`- ${key}${sep}${Array.from(files).join(sep)}`));
+    console.log(`\n${missingStrings.length} missing language strings found`);
+  } else {
+    console.log('\nNo missing strings!');
+  }
 }
 
 check();

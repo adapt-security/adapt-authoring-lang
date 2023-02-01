@@ -37,18 +37,17 @@ async function getTranslatedStrings() {
 }
 
 async function getUsedStrings(translatedStrings) {
-  const uiRoot = `${root}/adapt-authoring-ui/app/`;
-  const files = await glob(`${uiRoot}**/*.@(js|hbs)`, { absolute: true });
+  const files = await glob(`${root}/adapt-authoring-*/**/*.@(js|hbs)`, { absolute: true });
   const translatedKeys = Object.keys(translatedStrings);
   const usedStrings = {};
   await Promise.all(files.map(async f => {
     const contents = (await fs.readFile(f)).toString();
     translatedKeys.forEach(k => contents.includes(k) ? translatedStrings[k] = true : undefined);
-    const match = contents.matchAll(/(app\.[\w|\.]+)\W/g);
+    const match = contents.matchAll(/['|"|`|](app\.[\w|\.]+)\W/g);
     if(match) {
       for (const [s, key] of match) {
         if(!usedStrings[key]) usedStrings[key] = new Set();
-        usedStrings[key].add(f.replace(uiRoot, ''));
+        usedStrings[key].add(f.replace(root, ''));
       }
     }
   }));

@@ -5,7 +5,7 @@
 import fs from "fs/promises";
 import globCb from "glob";
 import path from "path";
-import { log, promisify } from "util";
+import { promisify } from "util";
 const glob = promisify(globCb);
 
 const root = `${process.cwd().replaceAll(path.sep, '/')}/node_modules`;
@@ -27,9 +27,6 @@ async function getTranslatedStrings() {
     await Promise.all((await fs.readdir(l)).map(async f => {
       const keys = JSON.parse(await fs.readFile(`${l}/${f}`));
       const id = f.split('.')[1];
-      if(id === 'error') {
-        return;
-      }
       Object.keys(keys).map(k => `${id}.${k}`).forEach(k => keyMap[k] = false);
     }));
   }));
@@ -37,10 +34,18 @@ async function getTranslatedStrings() {
 }
 
 async function getUsedStrings(translatedStrings) {
-  const files = await glob(`${root}/adapt-authoring-*/**/*.@(js|hbs)`, { absolute: true });
   const translatedKeys = Object.keys(translatedStrings);
   const usedStrings = {};
-  await Promise.all(files.map(async f => {
+  const errorFiles = await glob(`${root}/adapt-authoring-*/errors/*.json`, { absolute: true });
+  await Promise.all(errorFiles.map(async f => {
+    Object.keys(JSON.parse((await fs.readFile(f)))).forEach(e => {
+      const key = `error.${e}`;
+      if(!usedStrings[key]) usedStrings[key] = new Set();
+      usedStrings[key] = new Set([f]);
+    });
+  }));
+  const sourceFiles = await glob(`${root}/adapt-authoring-*/**/*.@(js|hbs)`, { absolute: true });
+  await Promise.all(sourceFiles.map(async f => {
     const contents = (await fs.readFile(f)).toString();
     translatedKeys.forEach(k => contents.includes(k) ? translatedStrings[k] = true : undefined);
     const match = contents.matchAll(/['|"|`|](app\.[\w|\.]+)\W/g);

@@ -60,7 +60,7 @@ async function getUsedStrings(translatedStrings) {
 }
 
 function logUnusedStrings(data) {
-  const unusedKeys = Object.entries(data).filter(([k,v]) => !v).map(([k]) => k);
+  const unusedKeys = Object.entries(data).filter(([k,v]) => !k.startsWith('error.') && !v).map(([k]) => k);
   console.log('');
   if(unusedKeys.length) {
     unusedKeys.forEach(k => console.log(`- ${k}`));

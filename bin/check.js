@@ -41,7 +41,7 @@ async function getUsedStrings(translatedStrings) {
     Object.keys(JSON.parse((await fs.readFile(f)))).forEach(e => {
       const key = `error.${e}`;
       if(!usedStrings[key]) usedStrings[key] = new Set();
-      usedStrings[key] = new Set([f]);
+      usedStrings[key].add(f.replace(root, '').split('/')[1]); // only add module name for errors
     });
   }));
   const sourceFiles = await glob(`${root}/adapt-authoring-*/**/*.@(js|hbs)`, { absolute: true });

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Checks for string usage
+ * Checks for unused and missing language strings
 */
 import fs from "fs/promises";
 import globCb from "glob";

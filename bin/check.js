@@ -3,10 +3,8 @@
  * Checks for unused and missing language strings
 */
 import fs from 'fs/promises'
-import globCb from 'glob'
+import { glob } from 'glob'
 import path from 'path'
-import { promisify } from 'util'
-const glob = promisify(globCb)
 
 const root = `${process.cwd().replaceAll(path.sep, '/')}/node_modules`
 

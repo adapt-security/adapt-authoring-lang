@@ -52,7 +52,7 @@ async function getUsedStrings (translatedStrings) {
     translatedKeys.forEach(k => {
       translatedStrings[k] = contents.includes(k) ? true : undefined
     })
-    const match = contents.matchAll(/['|"|`|](app\.[\w|\.]+)\W/g)
+    const match = contents.matchAll(/['|"|`|](app\.[\w|.]+)\W/g)
     if (match) {
       for (const m of match) {
         const key = m[1]

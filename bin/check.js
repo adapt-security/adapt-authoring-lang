@@ -8,7 +8,7 @@ import path from 'path'
 
 const root = `${process.cwd().replaceAll(path.sep, '/')}/node_modules`
 
-const underline  = (s = '', topLine = true) => {
+const underline  = (s='', topLine=true) => {
   const line = () => ''.padEnd(80, '-')
   console.log(`${topLine ? line() + '\n' : ''}  ${s}\n${line()}`)
 }
@@ -26,15 +26,15 @@ async function check () {
     const usedStrings = await getUsedStrings(langStrings)
     const unusedStrings = Object.entries(langStrings).filter(([k, v]) => !k.startsWith('error.') && !v).map(([k]) => k)
     const missingStrings = Object.entries(usedStrings).filter(([key]) => !langStrings[key] && !key.startsWith('error') && key !== 'app.js')
-  
-    console.log();
+
+    console.log()
     logStrings(unusedStrings, 'translated strings not referenced in the code')
-    console.log();
+    console.log()
     logStrings(missingStrings, 'strings without translation')
-    console.log();
+    console.log()
     underline(`Summary:\n  - ${unusedStrings.length} unused language strings found\n  - ${missingStrings.length} missing language strings found`.padEnd(80), true)
   }
-  console.log();
+  console.log()
 }
 
 async function getTranslatedStrings () {
@@ -66,7 +66,7 @@ async function getUsedStrings (translatedStrings) {
     })
   }))
   const sourceFiles = await glob('adapt-authoring-*/**/*.@(js|hbs)', { cwd: root, absolute: true, ignore: '**/node_modules/**' })
-  
+
   await Promise.all(sourceFiles.map(async f => {
     const contents = (await fs.readFile(f)).toString()
     // Match all potential language keys in the file (app.*, error.*, etc.)
@@ -74,14 +74,14 @@ async function getUsedStrings (translatedStrings) {
 
     for (const m of allMatches) {
       const key = m[2]
-      if (translatedStrings.hasOwnProperty(key)) {
+      if (Object.hasOwn(translatedStrings, key)) {
         translatedStrings[key] = true
       }
       if (!usedStrings[key]) usedStrings[key] = new Set()
       usedStrings[key].add(f.replace(root, ''))
     }
   }))
-  Object.entries(usedStrings).forEach(([k,set]) => {
+  Object.entries(usedStrings).forEach(([k, set]) => {
     usedStrings[k] = `${Array.from(set).map(s => `\n    ${s}`).join('')}`
   })
   return usedStrings

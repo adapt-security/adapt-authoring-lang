@@ -8,14 +8,33 @@ import path from 'path'
 
 const root = `${process.cwd().replaceAll(path.sep, '/')}/node_modules`
 
+const underline  = (s='', topLine=true) => {
+  const line = () => ''.padEnd(80, '-')
+  console.log(`${topLine ? line() + '\n' : ''}  ${s}\n${line()}`)
+}
+
 async function check () {
-  console.log('Checking for unused language strings')
+  console.log('\n\nChecking app language strings')
 
   const translatedStrings = await getTranslatedStrings()
-  const usedStrings = await getUsedStrings(translatedStrings)
 
-  logUnusedStrings(translatedStrings)
-  logMissingStrings(translatedStrings, usedStrings)
+  for (const lang of Object.keys(translatedStrings)) {
+    console.log('\n\n')
+    underline(`Language: ${lang}`.toUpperCase().padEnd(80), true)
+
+    const langStrings = translatedStrings[lang]
+    const usedStrings = await getUsedStrings(langStrings)
+    const unusedStrings = Object.entries(langStrings).filter(([k, v]) => !k.startsWith('error.') && !v).map(([k]) => k)
+    const missingStrings = Object.entries(usedStrings).filter(([key]) => !langStrings[key] && !key.startsWith('error') && key !== 'app.js')
+
+    console.log()
+    logStrings(unusedStrings, 'translated strings not referenced in the code')
+    console.log()
+    logStrings(missingStrings, 'strings without translation')
+    console.log()
+    underline(`Summary:\n  - ${unusedStrings.length} unused language strings found\n  - ${missingStrings.length} missing language strings found`.padEnd(80), true)
+  }
+  console.log()
 }
 
 async function getTranslatedStrings () {
@@ -24,11 +43,12 @@ async function getTranslatedStrings () {
   await Promise.all((langPacks).map(async l => {
     await Promise.all((await fs.readdir(l)).map(async f => {
       const keys = JSON.parse(await fs.readFile(`${l}/${f}`))
-      const id = f.split('.')[1]
+      const [lang, id] = f.split('.')
+      if (!keyMap[lang]) keyMap[lang] = {}
       Object.keys(keys)
         .map(k => `${id}.${k}`)
         .forEach(k => {
-          keyMap[k] = false
+          keyMap[lang][k] = false
         })
     }))
   }))
@@ -36,9 +56,8 @@ async function getTranslatedStrings () {
 }
 
 async function getUsedStrings (translatedStrings) {
-  const translatedKeys = Object.keys(translatedStrings)
   const usedStrings = {}
-  const errorFiles = await glob(`${root}/adapt-authoring-*/errors/*.json`, { absolute: true })
+  const errorFiles = await glob('adapt-authoring-*/errors/*.json', { cwd: root, absolute: true })
   await Promise.all(errorFiles.map(async f => {
     Object.keys(JSON.parse((await fs.readFile(f)))).forEach(e => {
       const key = `error.${e}`
@@ -46,48 +65,35 @@ async function getUsedStrings (translatedStrings) {
       usedStrings[key].add(f.replace(root, '').split('/')[1]) // only add module name for errors
     })
   }))
-  const sourceFiles = await glob(`${root}/adapt-authoring-*/**/*.@(js|hbs)`, { absolute: true })
+  const sourceFiles = await glob('adapt-authoring-*/**/*.@(js|hbs)', { cwd: root, absolute: true, ignore: '**/node_modules/**' })
+
   await Promise.all(sourceFiles.map(async f => {
     const contents = (await fs.readFile(f)).toString()
-    translatedKeys.forEach(k => {
-      translatedStrings[k] = contents.includes(k) ? true : undefined
-    })
-    const match = contents.matchAll(/['|"|`|](app\.[\w|.]+)\W/g)
-    if (match) {
-      for (const m of match) {
-        const key = m[1]
-        if (!usedStrings[key]) usedStrings[key] = new Set()
-        usedStrings[key].add(f.replace(root, ''))
+    // Match all potential language keys in the file (app.*, error.*, etc.)
+    const allMatches = contents.matchAll(/(['"`])((?:app|error)\.[\w.]+)\1/g)
+
+    for (const m of allMatches) {
+      const key = m[2]
+      if (Object.hasOwn(translatedStrings, key)) {
+        translatedStrings[key] = true
       }
+      if (!usedStrings[key]) usedStrings[key] = new Set()
+      usedStrings[key].add(f.replace(root, ''))
     }
   }))
+  Object.entries(usedStrings).forEach(([k, set]) => {
+    usedStrings[k] = `${Array.from(set).map(s => `\n    ${s}`).join('')}`
+  })
   return usedStrings
 }
 
-function logUnusedStrings (data) {
-  const unusedKeys = Object.entries(data).filter(([k, v]) => !k.startsWith('error.') && !v).map(([k]) => k)
-  console.log('')
-  if (unusedKeys.length) {
-    unusedKeys.forEach(k => console.log(`- ${k}`))
-    console.log(`\n${unusedKeys.length} unused language strings found`)
-    process.exitCode = 1
-  } else {
-    console.log('\nNo unused strings!')
+function logStrings (strings, message) {
+  if (!strings.length) {
+    return
   }
-}
-
-function logMissingStrings (translatedStrings, usedStrings) {
-  console.log('')
-  const translatedKeys = Object.keys(translatedStrings)
-  const missingStrings = Object.entries(usedStrings).filter(([key]) => !translatedKeys.includes(key) && key !== 'app.js')
-  if (missingStrings.length) {
-    const sep = '\n   => '
-    missingStrings.forEach(([key, files]) => console.log(`- ${key}${sep}${Array.from(files).join(sep)}`))
-    console.log(`\n${missingStrings.length} missing language strings found`)
-    process.exitCode = 1
-  } else {
-    console.log('\nNo missing strings!')
-  }
+  underline(`Found ${strings.length} ${message}`)
+  console.log(`${strings.map(s => `\n- ${s}`).join('')}`)
+  process.exitCode = 1
 }
 
 check()

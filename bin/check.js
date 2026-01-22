@@ -8,7 +8,7 @@ import path from 'path'
 
 const root = `${process.cwd().replaceAll(path.sep, '/')}/node_modules`
 
-const underline  = (s='', topLine=true) => {
+const underline = (s = '', topLine = true) => {
   const line = () => ''.padEnd(80, '-')
   console.log(`${topLine ? line() + '\n' : ''}  ${s}\n${line()}`)
 }

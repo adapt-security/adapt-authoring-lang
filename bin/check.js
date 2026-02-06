@@ -98,7 +98,7 @@ async function getUsedStrings (translatedStrings) {
 
 function logStrings (strings, message) {
   if (!strings.length) {
-    return console.log(`✓ No ${message}`);
+    return console.log(`✓ No ${message}`)
   }
   underline(`Found ${strings.length} ${message}`)
   console.log(`${strings.map(s => `\n- ${s}`).join('')}`)

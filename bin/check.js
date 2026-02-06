@@ -14,13 +14,16 @@ const underline = (s = '', topLine = true) => {
 }
 
 async function check () {
-  console.log('\n\nChecking app language strings')
-
+  underline('Language String Check')
+  
   const translatedStrings = await getTranslatedStrings()
+  console.log('\n\  Languages found:')
+  Object.keys(translatedStrings).forEach(l => console.log('  -', l))
+  
 
   for (const lang of Object.keys(translatedStrings)) {
-    console.log('\n\n')
-    underline(`Language: ${lang}`.toUpperCase().padEnd(80), true)
+    console.log('\n')
+    underline(`Language: ${lang}`.toUpperCase())
 
     const langStrings = translatedStrings[lang]
     const usedStrings = await getUsedStrings(langStrings)
@@ -28,11 +31,18 @@ async function check () {
     const missingStrings = Object.entries(usedStrings).filter(([key]) => !langStrings[key] && !key.startsWith('error') && key !== 'app.js')
 
     console.log()
-    logStrings(unusedStrings, 'translated strings not referenced in the code')
-    console.log()
-    logStrings(missingStrings, 'strings without translation')
-    console.log()
-    underline(`Summary:\n  - ${unusedStrings.length} unused language strings found\n  - ${missingStrings.length} missing language strings found`.padEnd(80), true)
+    if (unusedStrings.length) {
+      logStrings(unusedStrings, 'translated strings unreferenced in the code')
+      console.log()
+    }
+    if (missingStrings.length) {
+      logStrings(missingStrings, 'strings without translation')
+      console.log()
+    }
+    if (!unusedStrings.length && !missingStrings.length) {
+      console.log('✓ No issues found!\n')
+    }
+    underline(`Summary:\n  - ${unusedStrings.length} unused language strings found\n  - ${missingStrings.length} missing language strings found`)
   }
   console.log()
 }
@@ -89,7 +99,7 @@ async function getUsedStrings (translatedStrings) {
 
 function logStrings (strings, message) {
   if (!strings.length) {
-    return
+    return console.log(`✓ No ${message}`);
   }
   underline(`Found ${strings.length} ${message}`)
   console.log(`${strings.map(s => `\n- ${s}`).join('')}`)

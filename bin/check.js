@@ -15,11 +15,10 @@ const underline = (s = '', topLine = true) => {
 
 async function check () {
   underline('Language String Check')
-  
+
   const translatedStrings = await getTranslatedStrings()
-  console.log('\n\  Languages found:')
+  console.log('\n  Languages found:')
   Object.keys(translatedStrings).forEach(l => console.log('  -', l))
-  
 
   for (const lang of Object.keys(translatedStrings)) {
     console.log('\n')

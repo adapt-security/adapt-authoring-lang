@@ -9,6 +9,9 @@
   "bin": {
     "at-langcheck": "./bin/check.js"
   },
+  "scripts": {
+    "test": "node --test tests/*.spec.js"
+  },
   "repository": "github:adapt-security/adapt-authoring-lang",
   "dependencies": {
     "glob": "^13.0.0"

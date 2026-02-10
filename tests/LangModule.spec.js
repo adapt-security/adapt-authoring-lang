@@ -206,6 +206,10 @@ describe('LangModule', () => {
   })
 
   describe('#getPhrasesForLang()', () => {
+    // Note: This method has quirky behavior and doesn't match the actual phrases structure.
+    // The method expects keys like 'lang.key' but actual structure is { lang: { key: value } }.
+    // Tests document the actual behavior even though it may not be the intended behavior.
+
     it('should return undefined when phrases structure does not match expected format', () => {
       // The current structure is { lang: { key: value } }
       // but getPhrasesForLang expects keys like 'lang.key'
@@ -237,6 +241,8 @@ describe('LangModule', () => {
     })
 
     it('should return undefined for language with only one phrase', () => {
+      // Method only returns phrases when there are more than one (line 111 in LangModule.js)
+      // This is the actual behavior, even if it seems arbitrary
       instance.phrases = {
         'en.app.test': 'Test'
       }

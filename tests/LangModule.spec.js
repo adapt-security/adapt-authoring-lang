@@ -1,4 +1,4 @@
-import { describe, it, before, beforeEach } from 'node:test'
+import { describe, it, mock, before, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import LangModule from '../lib/LangModule.js'
 
@@ -76,6 +76,12 @@ describe('LangModule', () => {
     it('should handle nested keys with dots', () => {
       instance.storeStrings('en.app.nested.key', 'Nested Value')
       assert.equal(instance.phrases.en['app.nested.key'], 'Nested Value')
+    })
+
+    it('should overwrite existing key', () => {
+      instance.storeStrings('en.app.test', 'Original')
+      instance.storeStrings('en.app.test', 'Updated')
+      assert.equal(instance.phrases.en['app.test'], 'Updated')
     })
   })
 
@@ -157,6 +163,68 @@ describe('LangModule', () => {
       const result = instance.translate('en', mockError)
       assert.equal(result, 'Test error message')
     })
+
+    it('should use default language when lang is a number', () => {
+      const result = instance.translate(42, 'app.simple')
+      assert.equal(result, 'Simple text')
+    })
+
+    it('should use default language when lang is undefined', () => {
+      const result = instance.translate(undefined, 'app.simple')
+      assert.equal(result, 'Simple text')
+    })
+
+    it('should return key when language exists but key is missing', () => {
+      const result = instance.translate('fr', 'app.missing')
+      assert.equal(result, 'app.missing')
+    })
+
+    it('should return key when language does not exist', () => {
+      const result = instance.translate('de', 'app.simple')
+      assert.equal(result, 'app.simple')
+    })
+
+    it('should translate error values in data via translateError', () => {
+      instance.phrases.en['app.status'] = 'Status: $' + '{err}'
+      instance.phrases.en['error.INNER'] = 'inner error'
+      const innerError = {
+        constructor: { name: 'AdaptError' },
+        code: 'INNER',
+        data: {}
+      }
+      const result = instance.translate('en', 'app.status', { err: innerError })
+      assert.equal(result, 'Status: inner error')
+    })
+
+    it('should translate error values inside arrays in data', () => {
+      instance.phrases.en['app.errors'] = 'Errors: $' + '{errs}'
+      instance.phrases.en['error.E1'] = 'err one'
+      instance.phrases.en['error.E2'] = 'err two'
+      const errs = [
+        { constructor: { name: 'AdaptError' }, code: 'E1', data: {} },
+        { constructor: { name: 'AdaptError' }, code: 'E2', data: {} }
+      ]
+      const result = instance.translate('en', 'app.errors', { errs })
+      assert.ok(result.includes('err one'))
+      assert.ok(result.includes('err two'))
+    })
+
+    it('should handle $map with multiple attributes', () => {
+      instance.phrases.en['app.userinfo'] = 'Users: $map{users:name,age: | }'
+      const users = [
+        { name: 'Alice', age: 30 },
+        { name: 'Bob', age: 25 }
+      ]
+      const result = instance.translate('en', 'app.userinfo', { users })
+      assert.equal(result, 'Users: Alice,30 | Bob,25')
+    })
+
+    it('should handle $map with missing attribute by keeping attribute name', () => {
+      instance.phrases.en['app.userinfo'] = 'Users: $map{users:missing:, }'
+      const users = [{ name: 'Alice' }, { name: 'Bob' }]
+      const result = instance.translate('en', 'app.userinfo', { users })
+      assert.equal(result, 'Users: missing, missing')
+    })
   })
 
   describe('#translateError()', () => {
@@ -202,6 +270,108 @@ describe('LangModule', () => {
     it('should return undefined unchanged', () => {
       const result = instance.translateError('en', undefined)
       assert.equal(result, undefined)
+    })
+
+    it('should return number values unchanged', () => {
+      const result = instance.translateError('en', 42)
+      assert.equal(result, 42)
+    })
+
+    it('should use error object itself as data when data is missing', () => {
+      instance.phrases.en['error.NO_DATA'] = 'Code: $' + '{code}'
+      const error = {
+        constructor: { name: 'AdaptError' },
+        code: 'NO_DATA'
+      }
+      const result = instance.translateError('en', error)
+      assert.equal(result, 'Code: NO_DATA')
+    })
+  })
+
+  describe('#addTranslationUtils()', () => {
+    beforeEach(() => {
+      instance.phrases = {
+        en: { 'app.hello': 'Hello' },
+        fr: { 'app.hello': 'Bonjour' }
+      }
+    })
+
+    it('should add translate function to the request object', () => {
+      const req = {
+        acceptsLanguages: () => 'en'
+      }
+      const res = {}
+      const next = mock.fn()
+      instance.addTranslationUtils(req, res, next)
+      assert.equal(typeof req.translate, 'function')
+      assert.equal(next.mock.callCount(), 1)
+    })
+
+    it('should bind translate to the accepted language', () => {
+      const req = {
+        acceptsLanguages: () => 'fr'
+      }
+      const res = {}
+      const next = mock.fn()
+      instance.addTranslationUtils(req, res, next)
+      const result = req.translate('app.hello')
+      assert.equal(result, 'Bonjour')
+    })
+  })
+
+  describe('#requestHandler()', () => {
+    beforeEach(() => {
+      instance.phrases = {
+        en: { 'app.hello': 'Hello' },
+        fr: { 'app.hello': 'Bonjour' }
+      }
+    })
+
+    it('should respond with phrases for the requested language', () => {
+      const req = {
+        params: { lang: 'en' },
+        acceptsLanguages: () => 'en'
+      }
+      let jsonData
+      const res = { json: (data) => { jsonData = data } }
+      const next = mock.fn()
+      instance.requestHandler(req, res, next)
+      assert.deepEqual(jsonData, { 'app.hello': 'Hello' })
+      assert.equal(next.mock.callCount(), 0)
+    })
+
+    it('should fall back to browser language when no lang param', () => {
+      const req = {
+        params: {},
+        acceptsLanguages: () => 'fr'
+      }
+      let jsonData
+      const res = { json: (data) => { jsonData = data } }
+      const next = mock.fn()
+      instance.requestHandler(req, res, next)
+      assert.deepEqual(jsonData, { 'app.hello': 'Bonjour' })
+    })
+
+    it('should call next with error for unknown language', () => {
+      const req = {
+        params: { lang: 'de' },
+        acceptsLanguages: () => false
+      }
+      const res = {}
+      const next = mock.fn()
+      instance.requestHandler(req, res, next)
+      assert.equal(next.mock.callCount(), 1)
+    })
+
+    it('should call next with error when no language is accepted', () => {
+      const req = {
+        params: {},
+        acceptsLanguages: () => false
+      }
+      const res = {}
+      const next = mock.fn()
+      instance.requestHandler(req, res, next)
+      assert.equal(next.mock.callCount(), 1)
     })
   })
 
@@ -257,6 +427,25 @@ describe('LangModule', () => {
       }
       const result = instance.getPhrasesForLang('de')
       assert.equal(result, undefined)
+    })
+
+    it('should return undefined when phrases is empty', () => {
+      instance.phrases = {}
+      const result = instance.getPhrasesForLang('en')
+      assert.equal(result, undefined)
+    })
+
+    it('should exclude phrases from other languages', () => {
+      instance.phrases = {
+        'en.app.test1': 'Test 1',
+        'en.app.test2': 'Test 2',
+        'fr.app.test1': 'Test FR'
+      }
+      const result = instance.getPhrasesForLang('en')
+      assert.ok(result)
+      assert.equal(Object.keys(result).length, 2)
+      assert.equal(result['app.test1'], 'Test 1')
+      assert.equal(result['fr.app.test1'], undefined)
     })
   })
 })

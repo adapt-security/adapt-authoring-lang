@@ -11,18 +11,15 @@
   },
   "repository": "github:adapt-security/adapt-authoring-lang",
   "dependencies": {
+    "adapt-authoring-core": "^1.7.0",
     "glob": "^13.0.0"
   },
   "peerDependencies": {
-    "adapt-authoring-auth": "^1.0.5",
-    "adapt-authoring-core": "^1.7.0",
+    "adapt-authoring-auth": "^1.0.7",
     "adapt-authoring-server": "^1.2.1"
   },
   "peerDependenciesMeta": {
     "adapt-authoring-auth": {
-      "optional": true
-    },
-    "adapt-authoring-core": {
       "optional": true
     },
     "adapt-authoring-server": {

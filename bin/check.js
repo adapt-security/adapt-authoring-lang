@@ -74,7 +74,7 @@ async function getUsedStrings (translatedStrings) {
       usedStrings[key].add(f.replace(root, '').split('/')[1]) // only add module name for errors
     })
   }))
-  const sourceFiles = await glob('adapt-authoring-*/**/*.@(js|hbs)', { cwd: root, absolute: true, ignore: '**/node_modules/**' })
+  const sourceFiles = await glob('adapt-authoring-*/**/*.@(js|hbs)', { cwd: root, absolute: true, ignore: ['**/node_modules/**', '**/*.spec.js', '**/tests/**'] })
 
   await Promise.all(sourceFiles.map(async f => {
     const contents = (await fs.readFile(f)).toString()

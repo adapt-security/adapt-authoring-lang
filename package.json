@@ -14,7 +14,7 @@
   },
   "repository": "github:adapt-security/adapt-authoring-lang",
   "dependencies": {
-    "adapt-authoring-core": "^1.7.0",
+    "adapt-authoring-core": "^2.0.0",
     "glob": "^13.0.0"
   },
   "peerDependencies": {

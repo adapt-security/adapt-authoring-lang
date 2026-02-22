@@ -1,6 +1,7 @@
 import { describe, it, mock, before, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import LangModule from '../lib/LangModule.js'
+import { storeStrings } from '../lib/utils.js'
 
 describe('LangModule', () => {
   let instance
@@ -50,37 +51,37 @@ describe('LangModule', () => {
     })
   })
 
-  describe('#storeStrings()', () => {
+  describe('storeStrings()', () => {
     beforeEach(() => {
       instance.phrases = {}
     })
 
     it('should store string with language prefix', () => {
-      instance.storeStrings('en.app.test', 'Test Value')
+      storeStrings(instance.phrases, 'en.app.test', 'Test Value')
       assert.equal(instance.phrases.en['app.test'], 'Test Value')
     })
 
     it('should create language key if not exists', () => {
-      instance.storeStrings('fr.app.hello', 'Bonjour')
+      storeStrings(instance.phrases, 'fr.app.hello', 'Bonjour')
       assert.ok(instance.phrases.fr)
       assert.equal(instance.phrases.fr['app.hello'], 'Bonjour')
     })
 
     it('should store multiple strings for same language', () => {
-      instance.storeStrings('en.app.test1', 'Value 1')
-      instance.storeStrings('en.app.test2', 'Value 2')
+      storeStrings(instance.phrases, 'en.app.test1', 'Value 1')
+      storeStrings(instance.phrases, 'en.app.test2', 'Value 2')
       assert.equal(instance.phrases.en['app.test1'], 'Value 1')
       assert.equal(instance.phrases.en['app.test2'], 'Value 2')
     })
 
     it('should handle nested keys with dots', () => {
-      instance.storeStrings('en.app.nested.key', 'Nested Value')
+      storeStrings(instance.phrases, 'en.app.nested.key', 'Nested Value')
       assert.equal(instance.phrases.en['app.nested.key'], 'Nested Value')
     })
 
     it('should overwrite existing key', () => {
-      instance.storeStrings('en.app.test', 'Original')
-      instance.storeStrings('en.app.test', 'Updated')
+      storeStrings(instance.phrases, 'en.app.test', 'Original')
+      storeStrings(instance.phrases, 'en.app.test', 'Updated')
       assert.equal(instance.phrases.en['app.test'], 'Updated')
     })
   })

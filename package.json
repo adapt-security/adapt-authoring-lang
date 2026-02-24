@@ -18,7 +18,7 @@
     "glob": "^13.0.0"
   },
   "peerDependencies": {
-    "adapt-authoring-auth": "^1.0.7",
+    "adapt-authoring-auth": "^2.0.0",
     "adapt-authoring-server": "^2.0.0"
   },
   "devDependencies": {

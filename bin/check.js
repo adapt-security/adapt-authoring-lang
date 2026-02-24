@@ -47,7 +47,7 @@ async function check () {
 }
 
 async function getTranslatedStrings () {
-  const langPacks = await glob(`${root}/adapt-authoring-langpack-*/lang`)
+  const langPacks = await glob(`${root}/adapt-authoring-*/lang`)
   const keyMap = {}
   await Promise.all((langPacks).map(async l => {
     await Promise.all((await fs.readdir(l)).map(async f => {

@@ -52,10 +52,12 @@ async function getTranslatedStrings () {
   await Promise.all((langPacks).map(async l => {
     await Promise.all((await fs.readdir(l)).map(async f => {
       const keys = JSON.parse(await fs.readFile(`${l}/${f}`))
-      const [lang, id] = f.split('.')
+      const parts = f.replace(/\.json$/, '').split('.')
+      const lang = parts[0]
+      const id = parts[1] // undefined for {lang}.json files
       if (!keyMap[lang]) keyMap[lang] = {}
       Object.keys(keys)
-        .map(k => `${id}.${k}`)
+        .map(k => id ? `${id}.${k}` : k)
         .forEach(k => {
           keyMap[lang][k] = false
         })

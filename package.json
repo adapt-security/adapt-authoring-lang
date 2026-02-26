@@ -19,7 +19,7 @@
   },
   "peerDependencies": {
     "adapt-authoring-auth": "^2.0.0",
-    "adapt-authoring-server": "^2.0.0"
+    "adapt-authoring-server": "^2.1.0"
   },
   "devDependencies": {
     "@semantic-release/git": "^10.0.1",
